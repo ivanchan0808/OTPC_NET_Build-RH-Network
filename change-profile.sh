@@ -131,7 +131,7 @@ elif (( $(echo "$VERSION >= 8" | bc -l) )); then
 	DAEMON_TYPE="NetworkManager"
 	echo "Service : Network Manager by ifcfg"  | tee -a $LOG_DEBUG_FILE
 elif (( $(echo "$VERSION >= 7" | bc -l) )); then
-	CONFIG_TYPE="NS"
+	CONFIG_TYPE="NM"                    ##### Original value : NS; changed at 8-Aug-2025
 	CONFIG_PATH=$NS_CONFIG_PATH
 	DAEMON_TYPE="Network"
 	echo "Service : Networking"  | tee -a $LOG_DEBUG_FILE
