@@ -1,6 +1,10 @@
 #!/bin/bash
 
 VERSION=`awk '{print $6}' /etc/redhat-release`
+if [[ $VERSION == "release" ]]; then
+    VERSION=`awk '{print $7}' /etc/redhat-release`
+fi
+
 if (( $(echo "$VERSION >= 8" | bc -l) )); then
     USER="ps_syssupp"
 elif (( $(echo "$VERSION >= 7" | bc -l) )); then

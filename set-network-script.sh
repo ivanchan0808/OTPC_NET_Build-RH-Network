@@ -2,6 +2,10 @@
 
 ##### New add on 24-Jul-2025
 VERSION=`awk '{print $6}' /etc/redhat-release`
+if [[ $VERSION == "release" ]]; then
+    VERSION=`awk '{print $7}' /etc/redhat-release`
+fi
+
 if (( $(echo "$VERSION >= 8" | bc -l) )); then
     USER="ps_syssupp"
 elif (( $(echo "$VERSION >= 7" | bc -l) )); then
@@ -158,7 +162,7 @@ set_new_nic() {
     local new_nic=""
 
     # Case 1: Onboard NIC, e.g., eno1 -> eno2
-    if [[ ${nic%%[0-9]*} == "eno" ]]; then
+    if [[ ${nic%%[0-9]*} == "eno" || ${nic%%[0-9]*} == "eth"]]; then
         local num=${nic//[!0-9]/}
         local new_num=$((num + 1))
         local prefix=${nic%%[0-9]*}
