@@ -53,6 +53,7 @@ NS_CONFIG_STANDBY_NIC=""
 MODE=""                                                 # New add on 22-Jul-2025 for online/offline mode
 UP_NIC_LIST=""                                          # New add on 22-Jul-2025 for check_nic_status of offline mode=
 LAST_RUN_FOLDER="${NS_NEW_CONFIG_PATH}last_run/"        # New add on 25-Jul-2025 for new generated profile comparison
+RUNNING_PROFILE_FILE="${PROFILES_PATH}env_last_run_profile"     # New add on 8-Aug-2025 for Lock checking
 DIFF_FILE="${LOG_PATH}diff.log"
 
 # Global var for create env_profile_file Only
@@ -320,7 +321,22 @@ else
         MODE="online"
         echo "Script execute in ONLINE mode!" | tee -a $LOG_DEBUG_FILE
         echo "Config File Path : ${NS_CONFIG_PATH}" | tee -a $LOG_DEBUG_FILE
+
+        ##### Added on 8-Aug for script locking. If LAST_RUN_PROFILE != Profile AA, prohibat to run this script!
+        if [[ -f $RUNNING_PROFILE_FILE ]] ; then
+            echo "IMPORT ENV FILE : ${RUNNING_PROFILE_FILE}" | tee -a $LOG_DEBUG_FILE
+            source $RUNNING_PROFILE_FILE
+
+            if [[ $LAST_RUN_PROFILE != "ProfileAA" ]]; then
+                echo "The system haven't been changed back to Profile AA, it is not allowed to re-generate the profile."
+                exit 1
+            fi
+        else
+            echo "No ENV File. Existing Profile become Profile AA."    
+        fi
+        #####
 fi
+
 
 # Create NS_Profile folder
 if [[ ! -d "$NS_NEW_CONFIG_PATH" ]]; then

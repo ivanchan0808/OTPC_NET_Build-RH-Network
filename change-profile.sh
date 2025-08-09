@@ -157,7 +157,15 @@ echo "DAEMON_TYPE : ${DAEMON_TYPE}" | tee -a $LOG_DEBUG_FILE
 
 if [[ ! -d $PROFILE_FOLDER ]] ; then
 	echo "The profile folder is not exist! The profile may be applied! "  | tee -a $LOG_DEBUG_FILE
-    exit 1
+    ##### Added on 8-Aug-2025 for Retrive the Profile from last_run folder
+    if [[ -d "${LAST_RUN_FOLDER}${PROFILE_NAME}" ]]; then
+        echo "The ${PROFILE_NAME} exist in last_run folder! Retrive the folder!"
+        mv "${LAST_RUN_FOLDER}${PROFILE_NAME}" $PROFILE_FOLDER
+    else
+        echo "The profile isn't exist in last_run. Consider to fallback to ProfileAA and re-generate Profiles!"
+        exit 1
+    fi   
+    #####
 fi
 
 ##### Added on 25-Jul-2025, for config comparison
