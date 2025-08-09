@@ -162,7 +162,7 @@ set_new_nic() {
     local new_nic=""
 
     # Case 1: Onboard NIC, e.g., eno1 -> eno2
-    if [[ ${nic%%[0-9]*} == "eno" || ${nic%%[0-9]*} == "eth"]]; then
+    if [[ ${nic%%[0-9]*} == "eno" || ${nic%%[0-9]*} == "eth" ]]; then
         local num=${nic//[!0-9]/}
         local new_num=$((num + 1))
         local prefix=${nic%%[0-9]*}

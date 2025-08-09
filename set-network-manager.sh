@@ -222,7 +222,7 @@ set_nm_eth_file() {
 
 	# if new_nic.nmconnection exist, swap the old new cfg. Otherwise, just change the existing config file for new nic.
 	if [ -f $new_cfg_file ]; then
-		local new_nic_uuid==$(grep -i "^uuid=" $new_cfg_file)
+		local new_nic_uuid=$(grep -i "^uuid=" $new_cfg_file)
 
 	        # rename the ensX.nmconnection file
         	mv $old_cfg_file $old_cfg_file".bak"
