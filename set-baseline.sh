@@ -37,10 +37,13 @@ GATEWAY_FILE="${LOG_PATH}/gateway_ips.txt"
 
 # Function: Extract gateway IPs and save to file
 extract_gateway_ips() {
-    ip route | awk '
-        ($1 == "default" && $2 == "via") { print $3 }
-        ($2 == "via") { print $3 }
-    ' | sort -u > "$GATEWAY_FILE"
+#    ip route | awk '
+#        ($1 == "default" && $2 == "via") { print $3 }
+#        ($2 == "via") { print $3 }
+#    ' | sort -u > "$GATEWAY_FILE"
+    SEDMAINFIL='s/.*via\ \([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\ dev \(.*\)\(\ proto.*\|\)$/\1/p'
+    MAINRGW=$( ip route list | grep -v 'scope link' | sort | sed -n -e "${SEDMAINFIL}" | sort -u )
+    echo -e "${MAINRGW}" > "$GATEWAY_FILE"
 }
 
 ping_gateways() {
