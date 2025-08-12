@@ -71,6 +71,7 @@ reload_service() {
 		systemctl restart network  | tee -a $LOG_DEBUG_FILE
 	elif [[ $service == "NetworkManager" ]]; then
 		nmcli connection reload  | tee -a $LOG_DEBUG_FILE
+  		sleep 10
 		systemctl restart NetworkManager  | tee -a $LOG_DEBUG_FILE
 	fi
 }
