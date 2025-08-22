@@ -59,9 +59,9 @@ ping_gateways() {
 disable_nic() {
     local nic=$1
     
-    if [[ $VERSION >= 8 ]]; then
+    if (( $(echo "$VERSION >= 8" | bc -l) )); then
         nmcli device disconnect $nic | tee -a $LOG_DEBUG_FILE
-    elif [[ $VERSION == 7 ]]; then
+    elif (( $(echo "$VERSION >= 7" | bc -l) )); then
         ifdown $nic
     fi
 }
@@ -69,9 +69,9 @@ disable_nic() {
 enable_nic() {
     local nic=$1
     
-    if [[ $VERSION >= 8 ]]; then
+    if (( $(echo "$VERSION >= 8" | bc -l) )); then
         nmcli device connect $nic | tee -a $LOG_DEBUG_FILE
-    elif [[ $VERSION == 7 ]]; then
+    elif (( $(echo "$VERSION >= 7" | bc -l) )); then
         ifup $nic
     fi
 }
