@@ -117,7 +117,11 @@ extract_bond(){
 
 # Main loop: parse blocks per IP
 for logfile in "${PING_LOG_FILES[@]}"; do
-        log_file="${LOG_PATH}${logfile}"
+    log_file="${LOG_PATH}${logfile}"
+
+    ##### Change on 23-Aug-2025
+    file_time=`ls -al $log_file | awk '{print $6, $7, $8}'`
+
     ##### Change on 25-Jul-2025 : Show the Profile and NIC to ping the IP.
     if [[ "$logfile" =~ ^([^_]+)_([^_]+)_([^_]+)_([^_]+)\.log$ ]]; then
         running_profile="${BASH_REMATCH[1]}"    # ProfileAA
@@ -129,7 +133,7 @@ for logfile in "${PING_LOG_FILES[@]}"; do
     #####
 
         if [ -f "$log_file" ] ; then
-                echo "Checking $log_file .........." | tee $OUTPUT_FILE | tee -a $LOG_DEBUG_FILE
+                echo "Checking $log_file (Date: $file_time).........." | tee $OUTPUT_FILE | tee -a $LOG_DEBUG_FILE
                 while read -r line; do
                     if [[ "$line" =~ ^PING[[:space:]]([0-9.]+)[[:space:]] ]]; then
                         ip="${BASH_REMATCH[1]}"
