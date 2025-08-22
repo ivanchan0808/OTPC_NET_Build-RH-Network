@@ -50,7 +50,7 @@ ping_gateways() {
     while read -r ip; do
         if [[ -n "$ip" ]]; then
             echo "Pinging $ip ..." 
-            ping -c 4 -W 1 "$ip" 
+            ping -c 8 -W 1 "$ip" 
             echo "---" 
         fi
     done < "$GATEWAY_FILE"
@@ -58,12 +58,22 @@ ping_gateways() {
 
 disable_nic() {
     local nic=$1
-    nmcli device disconnect $nic | tee -a $LOG_DEBUG_FILE
+    
+    if [[ $VERSION >= 8 ]]; then
+        nmcli device disconnect $nic | tee -a $LOG_DEBUG_FILE
+    elif [[ $VERSION == 7 ]]; then
+        ifdown $nic
+    fi
 }
 
 enable_nic() {
     local nic=$1
-    nmcli device connect $nic | tee -a $LOG_DEBUG_FILE
+    
+    if [[ $VERSION >= 8 ]]; then
+        nmcli device connect $nic | tee -a $LOG_DEBUG_FILE
+    elif [[ $VERSION == 7 ]]; then
+        ifup $nic
+    fi
 }
 
 if [[ -z "$1" || -z "$2" ]]; then
