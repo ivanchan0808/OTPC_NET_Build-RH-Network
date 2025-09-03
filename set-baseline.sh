@@ -1,6 +1,11 @@
 #!/bin/bash
 
 ##### New add on 24-Jul-2025
+
+NM_CONFIG_PATH="/etc/NetworkManager/system-connections/"
+NS_CONFIG_PATH="/etc/sysconfig/network-scripts/"
+CONFIG_PATH=""
+
 VERSION=`awk '{print $6}' /etc/redhat-release`
 if [[ $VERSION == "release" ]]; then
     VERSION=`awk '{print $7}' /etc/redhat-release`
@@ -8,11 +13,20 @@ fi
 
 if (( $(echo "$VERSION >= 8" | bc -l) )); then
     USER="ps_syssupp"
+    if (( $(echo "$VERSION >= 9" | bc -l) )); then 
+        CONFIG_PATH=$NM_CONFIG_PATH
+    else 
+        CONFIG_PATH=$NS_CONFIG_PATH
+    fi
 elif (( $(echo "$VERSION >= 7" | bc -l) )); then
     USER="syssupp"
+    CONFIG_PATH=$NS_CONFIG_PATH
 fi
 
 SERVER=`hostname`
+FIRST_CHAR=$(echo "$SERVER" | cut -c1)
+CSV_FILE="/home/${USER}/OTPC_NET_Build-RH-Network/${FIRST_CHAR}_gw.csv"
+
 LOG_PATH="/home/${USER}/otpc_log_${SERVER}/"
 
 if [ ! -d "/home/${USER}" ]; then
@@ -57,14 +71,39 @@ ping_gateways() {
     done < "$GATEWAY_FILE"
 }
 
+extract_vlan_gateways() {
+# Check if CSV file exists
+if [[ ! -f "$CSV_FILE" ]]; then
+    echo "Error: CSV file $CSV_FILE not found!"
+    exit 1
+fi
+
+# Process each bond connection file
+    ls $CONFIG_PATH/*.*.*  | while read filename; do
+    # Extract VLAN number from filename
+    vlan=$(echo "$filename" | awk -F'.' '{print $2}')
+    
+    # Look up IP address in CSV file
+    ip_address=$(awk -F',' -v vlan="$vlan" '$1 == vlan {print $2}' "$CSV_FILE")
+    
+    if [[ -n "$ip_address" ]]; then
+        echo "VLAN: $vlan -> IP: $ip_address"
+        echo $ip_address >> $GATEWAY_FILE
+    else
+        echo "VLAN: $vlan -> No IP found in CSV"
+    fi
+done
+}
+
 echo " Extract ip route gateway........ " |tee -a $LOG_DEBUG_FILE
 extract_gateway_ips |tee -a $LOG_DEBUG_FILE
 
 echo "Create ping baseline............. " |tee -a $LOG_DEBUG_FILE
 ping_gateways "${LOG_PATH}/original_ping.log" |tee -a $LOG_DEBUG_FILE
 
-echo "Create IP Route baseline............. " |tee -a $LOG_DEBUG_FILE
+echo "Create IP Route baseline" |tee -a $LOG_DEBUG_FILE
 ip route | tee "${LOG_PATH}/original_route.log" |tee -a $LOG_DEBUG_FILE
 
-
+echo "Extract VLAN GATEWAY............. " |tee -a $LOG_DEBUG_FILE
+extract_vlan_gateways
 echo "==============================Exit script $(date)===============================" | tee -a $LOG_DEBUG_FILE
