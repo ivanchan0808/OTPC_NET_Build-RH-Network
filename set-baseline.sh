@@ -1,11 +1,12 @@
 #!/bin/bash
 
+
+##### New add on 03-Sep-2025 (Select VLAN INTERFACE)
+NM_CONFIG_FILTER="/etc/NetworkManager/system-connections/*.*.nmconnection"
+NS_CONFIG_FILTER="/etc/sysconfig/network-scripts/ifcfg-*.*"
+CONFIG_FILTER=""
+
 ##### New add on 24-Jul-2025
-
-NM_CONFIG_PATH="/etc/NetworkManager/system-connections/"
-NS_CONFIG_PATH="/etc/sysconfig/network-scripts/"
-CONFIG_PATH=""
-
 VERSION=`awk '{print $6}' /etc/redhat-release`
 if [[ $VERSION == "release" ]]; then
     VERSION=`awk '{print $7}' /etc/redhat-release`
@@ -14,13 +15,13 @@ fi
 if (( $(echo "$VERSION >= 8" | bc -l) )); then
     USER="ps_syssupp"
     if (( $(echo "$VERSION >= 9" | bc -l) )); then 
-        CONFIG_PATH=$NM_CONFIG_PATH
+        CONFIG_FILTER=$NM_CONFIG_FILTER
     else 
-        CONFIG_PATH=$NS_CONFIG_PATH
+        CONFIG_FILTER=$NS_CONFIG_FILTER
     fi
 elif (( $(echo "$VERSION >= 7" | bc -l) )); then
     USER="syssupp"
-    CONFIG_PATH=$NS_CONFIG_PATH
+    CONFIG_FILTER=$NS_CONFIG_FILTER
 fi
 
 SERVER=`hostname`
@@ -79,7 +80,7 @@ if [[ ! -f "$CSV_FILE" ]]; then
 fi
 
 # Process each bond connection file
-    ls $CONFIG_PATH/*.*.*  | while read filename; do
+    ls $CONFIG_FILTER | while read filename; do
     # Extract VLAN number from filename
     vlan=$(echo "$filename" | awk -F'.' '{print $2}')
     
@@ -87,10 +88,10 @@ fi
     ip_address=$(awk -F',' -v vlan="$vlan" '$1 == vlan {print $2}' "$CSV_FILE")
     
     if [[ -n "$ip_address" ]]; then
-        echo "VLAN: $vlan -> IP: $ip_address"
-        echo $ip_address >> $GATEWAY_FILE
+        echo "VLAN: $vlan -> IP: $ip_address" |tee -a $LOG_DEBUG_FILE
+        echo $ip_address >> $GATEWAY_FILE |tee -a $LOG_DEBUG_FILE
     else
-        echo "VLAN: $vlan -> No IP found in CSV"
+        echo "VLAN: $vlan -> No IP found in CSV" |tee -a $LOG_DEBUG_FILE
     fi
 done
 }
