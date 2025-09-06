@@ -89,7 +89,7 @@ fi
     
     if [[ -n "$ip_address" ]]; then
         echo "VLAN: $vlan -> IP: $ip_address" |tee -a $LOG_DEBUG_FILE
-        echo $ip_address >> $GATEWAY_FILE |tee -a $LOG_DEBUG_FILE
+        echo "$ip_address" >> $GATEWAY_FILE |tee -a $LOG_DEBUG_FILE
     else
         echo "VLAN: $vlan -> No IP found in CSV" |tee -a $LOG_DEBUG_FILE
     fi
