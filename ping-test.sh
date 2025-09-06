@@ -36,14 +36,6 @@ PROFILES_PATH=$1
 PROFILE_NAME="Profile$2"
 _ENV_FILE_="${PROFILES_PATH}env_${PROFILE_NAME}_file"
 
-# Function: Extract gateway IPs and save to file
-extract_gateway_ips() {
-    ip route | awk '
-        ($1 == "default" && $2 == "via") { print $3 }
-        ($2 == "via") { print $3 }
-    ' | sort -u > "$GATEWAY_FILE"
-}
-
 # Function: Ping each IP from file and log output
 ping_gateways() {
     echo "=== Ping Test: $(date) ==="
@@ -64,6 +56,8 @@ disable_nic() {
     elif (( $(echo "$VERSION >= 7" | bc -l) )); then
         ifdown $nic
     fi
+    
+    sleep 2                 # Wait for NIC take over / give back.
 }
 
 enable_nic() {
@@ -71,8 +65,10 @@ enable_nic() {
     
     if (( $(echo "$VERSION >= 8" | bc -l) )); then
         nmcli device connect $nic | tee -a $LOG_DEBUG_FILE
+        sleep 5
     elif (( $(echo "$VERSION >= 7" | bc -l) )); then
         ifup $nic
+        sleep 30            # RHEL7 takes a long time to bring up the etherent.
     fi
 }
 
@@ -107,9 +103,6 @@ else
         echo "Exit script." | tee -a $LOG_DEBUG_FILE
 	    exit 1
 fi
-
-echo " Extract ip route gateway........" | tee -a $LOG_DEBUG_FILE
-extract_gateway_ips
 
 for nic in "${ACTIVE_NIC_LIST[@]}"; do
     echo "Disconnect Active NIC ($nic) ........" | tee -a $LOG_DEBUG_FILE
